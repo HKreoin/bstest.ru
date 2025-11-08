@@ -183,7 +183,8 @@ class TestAttemptController extends Controller
 
     protected function buildRtfProtocol(TestAttempt $attempt): string
     {
-        $completedAt = optional($attempt->completed_at)->format('d.m.Y H:i');
+        $completedAt = $attempt->completed_at?->setTimezone('Europe/Moscow');
+        $completedAtText = $completedAt?->format('d.m.Y H:i') ?? '—';
         $timeSpent = $attempt->time_spent_seconds ? gmdate('H:i:s', $attempt->time_spent_seconds) : '—';
         $scorePercent = $attempt->score_percent !== null ? number_format((float) $attempt->score_percent, 2) . ' %' : '—';
 
@@ -214,7 +215,7 @@ class TestAttemptController extends Controller
         }
 
         $lines = array_merge($lines, [
-            '\pard\sa120\f0\fs20 ' . $this->rtfText('Дата завершения: '.$completedAt) . '\par',
+            '\pard\sa120\f0\fs20 ' . $this->rtfText('Дата завершения (GMT+3): '.$completedAtText) . '\par',
             '\pard\sa120\f0\fs20 ' . $this->rtfText('Время прохождения: '.$timeSpent) . '\par',
             '\pard\sa120\f0\fs20 ' . $this->rtfText('Результат: '.$scorePercent.' (проходной минимум '.$attempt->test->passing_score_percent.' %)') . '\par',
             '\pard\sa240\f0\fs20 ' . $this->rtfText('Итог: '.($attempt->passed ? 'ТЕСТ ПРОЙДЕН' : 'ТЕСТ НЕ ПРОЙДЕН')) . '\par',
@@ -236,7 +237,7 @@ class TestAttemptController extends Controller
 
         $lines = array_merge($lines, [
             '\pard\sa280\f0\fs18 ' . $this->rtfText('Подпись участника: ____________________ ' . ($signatureName !== '' ? '(' . $signatureName . ')' : '')) . '\par',
-            '\pard\sa120\f0\fs18 ' . $this->rtfText('Дата: ' . $completedAt) . '\par',
+            '\pard\sa120\f0\fs18 ' . $this->rtfText('Дата: ' . $completedAtText) . '\par',
             '}',
         ]);
 

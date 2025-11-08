@@ -64,7 +64,7 @@
                                             @php
                                                 $timestamp = $attempt['completed_at'] ?? $attempt['started_at'] ?? null;
                                             @endphp
-                                            {{ $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp)->format('d.m.Y H:i') : '—' }}
+                                            {{ $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp, 'Europe/Moscow')->format('d.m.Y H:i') : '—' }}
                                         </td>
                                     </tr>
                                 @endforeach

@@ -74,4 +74,17 @@ class TestAttempt extends Model
     {
         return $this->status === self::STATUS_COMPLETED;
     }
+
+    public function calculatedTimeSpentSeconds(): ?int
+    {
+        if ($this->time_spent_seconds !== null) {
+            return $this->time_spent_seconds;
+        }
+
+        if ($this->started_at && $this->completed_at) {
+            return $this->started_at->diffInSeconds($this->completed_at);
+        }
+
+        return null;
+    }
 }

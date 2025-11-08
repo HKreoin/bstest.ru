@@ -64,7 +64,8 @@
 @php
     $completedAtLocal = $attempt->completed_at?->setTimezone('Europe/Moscow');
     $completedAtText = $completedAtLocal?->format('d.m.Y H:i') ?? '—';
-    $timeSpent = $attempt->time_spent_seconds ? gmdate('H:i:s', $attempt->time_spent_seconds) : '—';
+    $timeSpentSeconds = $attempt->calculatedTimeSpentSeconds();
+    $timeSpent = $timeSpentSeconds !== null ? gmdate('H:i:s', $timeSpentSeconds) : '—';
     $scorePercent = $attempt->score_percent !== null ? number_format((float) $attempt->score_percent, 2) . ' %' : '—';
     $nameParts = preg_split('/\s+/u', trim($attempt->participant_name ?? ''), -1, PREG_SPLIT_NO_EMPTY) ?: [];
     $signature = ($nameParts[0] ?? '') . ' ' . collect($nameParts)->slice(1)->map(fn ($part) => mb_substr($part, 0, 1) . '.')->join(' ');

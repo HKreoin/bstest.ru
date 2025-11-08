@@ -14,12 +14,13 @@
             @endif
             @php
                 $completedAtLocal = $attempt->completed_at?->setTimezone('Europe/Moscow');
+                $timeSpentSeconds = $attempt->calculatedTimeSpentSeconds();
             @endphp
             <div class="bg-white shadow sm:rounded-lg p-6 space-y-4">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="space-y-1 text-sm text-gray-600">
                         <p>Дата завершения (GMT+3): <span class="font-medium text-gray-900">{{ $completedAtLocal?->format('d.m.Y H:i') ?? '—' }}</span></p>
-                        <p>Время прохождения: <span class="font-medium text-gray-900">{{ $attempt->time_spent_seconds ? gmdate('H:i:s', $attempt->time_spent_seconds) : '—' }}</span></p>
+                        <p>Время прохождения: <span class="font-medium text-gray-900">{{ $timeSpentSeconds !== null ? gmdate('H:i:s', $timeSpentSeconds) : '—' }}</span></p>
                     </div>
                     <div class="text-right">
                         <p class="text-3xl font-bold text-gray-900">

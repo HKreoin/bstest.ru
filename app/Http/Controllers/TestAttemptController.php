@@ -185,7 +185,8 @@ class TestAttemptController extends Controller
     {
         $completedAt = $attempt->completed_at?->setTimezone('Europe/Moscow');
         $completedAtText = $completedAt?->format('d.m.Y H:i') ?? '—';
-        $timeSpent = $attempt->time_spent_seconds ? gmdate('H:i:s', $attempt->time_spent_seconds) : '—';
+        $timeSpentSeconds = $attempt->calculatedTimeSpentSeconds();
+        $timeSpent = $timeSpentSeconds !== null ? gmdate('H:i:s', $timeSpentSeconds) : '—';
         $scorePercent = $attempt->score_percent !== null ? number_format((float) $attempt->score_percent, 2) . ' %' : '—';
 
         $fullName = trim($attempt->participant_name ?? '');

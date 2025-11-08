@@ -134,7 +134,11 @@ class TestAttemptResource extends Resource
                                 ->dateTime(),
                             TextEntry::make('time_spent_seconds')
                                 ->label('Затрачено времени')
-                                ->formatStateUsing(fn (?int $seconds) => $seconds ? gmdate('H:i:s', $seconds) : '—'),
+                                ->formatStateUsing(function (?int $seconds, TestAttempt $record): string {
+                                    $value = $seconds ?? $record->calculatedTimeSpentSeconds();
+
+                                    return $value !== null ? gmdate('H:i:s', $value) : '—';
+                                }),
                         ]),
                 ]),
         ]);

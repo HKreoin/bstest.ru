@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Test;
+use App\Models\TestAttempt;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,14 +18,14 @@ class TestController extends Controller
             ->orderBy('title')
             ->paginate(9);
 
+        $recentAttempts = collect($request->session()->get('test_attempts', []))
+            ->sortByDesc('started_at')
+            ->take(5)
+            ->values();
+
         return view('tests.index', [
             'tests' => $tests,
-            'lastAttempts' => $request->user()
-                ->testAttempts()
-                ->with('test')
-                ->latest('completed_at')
-                ->limit(5)
-                ->get(),
+            'lastAttempts' => $recentAttempts,
         ]);
     }
 
@@ -32,19 +33,14 @@ class TestController extends Controller
     {
         abort_unless($test->is_active, 404);
 
-        $attemptsQuery = $request->user()
-            ->testAttempts()
-            ->where('test_id', $test->id)
-            ->latest('created_at');
-
-        $latestAttempt = (clone $attemptsQuery)->first();
-
-        $recentAttempts = (clone $attemptsQuery)->limit(10)->get();
+        $sessionAttempts = collect($request->session()->get('test_attempts', []))
+            ->filter(fn (array $attempt) => $attempt['test_id'] === $test->id)
+            ->sortByDesc('started_at')
+            ->values();
 
         return view('tests.show', [
             'test' => $test,
-            'latestAttempt' => $latestAttempt,
-            'recentAttempts' => $recentAttempts,
+            'recentAttempts' => $sessionAttempts->take(10),
         ]);
     }
 
@@ -52,13 +48,23 @@ class TestController extends Controller
     {
         abort_unless($test->is_active, 404);
 
-        return DB::transaction(function () use ($request, $test): RedirectResponse {
+        $data = $request->validate([
+            'participant_name' => ['required', 'string', 'max:255'],
+            'participant_email' => ['nullable', 'email', 'max:255'],
+        ]);
+
+        $data['participant_name'] = trim($data['participant_name']);
+        $data['participant_email'] = isset($data['participant_email']) ? trim((string) $data['participant_email']) : null;
+
+        return DB::transaction(function () use ($request, $test, $data): RedirectResponse {
             $questions = $test->drawQuestionsForAttempt();
 
             abort_if($questions->isEmpty(), 400, 'Нет вопросов для теста.');
 
-            $attempt = $request->user()->testAttempts()->create([
+            $attempt = TestAttempt::create([
                 'test_id' => $test->id,
+                'participant_name' => $data['participant_name'],
+                'participant_email' => $data['participant_email'] ?? null,
                 'total_questions' => $questions->count(),
                 'started_at' => now(),
             ]);
@@ -71,8 +77,42 @@ class TestController extends Controller
                 ]);
             }
 
+            $attemptSession = [
+                'id' => $attempt->id,
+                'test_id' => $attempt->test_id,
+                'test_slug' => $test->slug,
+                'test_title' => $test->title,
+                'participant_name' => $attempt->participant_name,
+                'score_percent' => null,
+                'passed' => false,
+                'started_at' => $attempt->started_at?->timestamp,
+                'completed_at' => null,
+            ];
+
+            $sessionAttempts = collect($request->session()->get('test_attempts', []))
+                ->filter(fn (array $item) => $item['id'] !== $attempt->id)
+                ->prepend($attemptSession)
+                ->take(20)
+                ->values()
+                ->all();
+
+            $request->session()->put('test_attempts', $sessionAttempts);
+            $this->storeAllowedAttemptId($request, $attempt->id);
+
             return redirect()->route('attempts.show', $attempt);
         });
+    }
+
+    protected function storeAllowedAttemptId(Request $request, int $attemptId): void
+    {
+        $allowed = collect($request->session()->get('allowed_attempt_ids', []))
+            ->filter(fn (int $id) => $id !== $attemptId)
+            ->push($attemptId)
+            ->take(50)
+            ->values()
+            ->all();
+
+        $request->session()->put('allowed_attempt_ids', $allowed);
     }
 }
 

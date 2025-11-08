@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('test_attempts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('test_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('participant_name')->default('');
+            $table->string('participant_email')->nullable();
             $table->string('status', 24)->default('in_progress');
             $table->unsignedSmallInteger('total_questions')->default(0);
             $table->unsignedSmallInteger('correct_questions')->default(0);

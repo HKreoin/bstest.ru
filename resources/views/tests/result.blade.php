@@ -32,6 +32,12 @@
                 <div class="text-sm text-gray-600">
                     Правильных ответов: <span class="font-medium text-gray-900">{{ $attempt->correct_questions }}</span> из {{ $attempt->total_questions }}
                 </div>
+                <div class="text-sm text-gray-600">
+                    Участник: <span class="font-medium text-gray-900">{{ $attempt->participant_name }}</span>
+                    @if ($attempt->participant_email)
+                        (<span class="text-gray-500">{{ $attempt->participant_email }}</span>)
+                    @endif
+                </div>
                 <div>
                     <a href="{{ route('tests.show', $attempt->test) }}" class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
                         Вернуться к тесту

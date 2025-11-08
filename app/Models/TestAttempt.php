@@ -16,7 +16,8 @@ class TestAttempt extends Model
 
     protected $fillable = [
         'test_id',
-        'user_id',
+        'participant_name',
+        'participant_email',
         'status',
         'total_questions',
         'correct_questions',
@@ -44,11 +45,6 @@ class TestAttempt extends Model
     public function test(): BelongsTo
     {
         return $this->belongsTo(Test::class);
-    }
-
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
     }
 
     public function questionAttempts(): HasMany

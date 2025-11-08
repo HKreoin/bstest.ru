@@ -16,6 +16,10 @@
             <div class="bg-white shadow sm:rounded-lg p-6 space-y-6">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="text-sm text-gray-600 space-y-1">
+                        <p>Участник: <span class="font-semibold text-gray-900">{{ $attempt->participant_name }}</span></p>
+                        @if ($attempt->participant_email)
+                            <p>Email: <span class="font-medium text-gray-900">{{ $attempt->participant_email }}</span></p>
+                        @endif
                         <p>Всего вопросов: <span class="font-semibold text-gray-900">{{ $attempt->questionAttempts->count() }}</span></p>
                         @if ($attempt->test->time_limit_minutes)
                             <p>Время на прохождение: <span class="font-semibold text-gray-900">{{ $attempt->test->time_limit_minutes }} минут</span></p>

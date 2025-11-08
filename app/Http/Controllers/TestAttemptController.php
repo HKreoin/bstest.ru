@@ -13,7 +13,7 @@ class TestAttemptController extends Controller
 {
     public function show(Request $request, TestAttempt $testAttempt): View
     {
-        abort_unless($testAttempt->user_id === $request->user()->id, 403);
+        abort_unless($this->canAccessAttempt($request, $testAttempt), 403);
 
         $testAttempt->load([
             'test',
@@ -33,7 +33,7 @@ class TestAttemptController extends Controller
 
     public function submit(SubmitTestAttemptRequest $request, TestAttempt $testAttempt): RedirectResponse
     {
-        abort_unless($testAttempt->user_id === $request->user()->id, 403);
+        abort_unless($this->canAccessAttempt($request, $testAttempt), 403);
         abort_if($testAttempt->isCompleted(), 400, 'Попытка уже завершена.');
 
         $answers = $request->validated('answers');
@@ -114,8 +114,41 @@ class TestAttemptController extends Controller
             );
         });
 
+        $this->updateSessionAttempt($request, $testAttempt);
+
         return redirect()->route('attempts.show', $testAttempt)->with('status', 'Тест завершён.');
     }
+
+    protected function canAccessAttempt(Request $request, TestAttempt $attempt): bool
+    {
+        if (auth()->check() && auth()->user()->is_admin) {
+            return true;
+        }
+
+        return collect($request->session()->get('allowed_attempt_ids', []))
+            ->contains($attempt->id);
+    }
+
+    protected function updateSessionAttempt(Request $request, TestAttempt $attempt): void
+    {
+        $attempts = collect($request->session()->get('test_attempts', []))
+            ->map(function (array $item) use ($attempt) {
+                if ($item['id'] !== $attempt->id) {
+                    return $item;
+                }
+
+                $item['score_percent'] = $attempt->score_percent;
+                $item['passed'] = $attempt->passed;
+                $item['completed_at'] = optional($attempt->completed_at)->timestamp;
+
+                return $item;
+            })
+            ->values()
+            ->all();
+
+        $request->session()->put('test_attempts', $attempts);
+    }
+
 }
 
 

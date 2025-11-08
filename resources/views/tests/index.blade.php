@@ -11,7 +11,10 @@
                 <h3 class="text-lg font-medium text-gray-900 mb-4">
                     Последние попытки
                 </h3>
-                @if ($lastAttempts->isEmpty())
+                @php
+                    $lastAttemptsList = collect($lastAttempts);
+                @endphp
+                @if ($lastAttemptsList->isEmpty())
                     <p class="text-sm text-gray-500">Вы ещё не проходили тесты.</p>
                 @else
                     <div class="overflow-x-auto">
@@ -25,15 +28,22 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach ($lastAttempts as $attempt)
+                                @foreach ($lastAttemptsList as $attempt)
+                                    @php
+                                        $isCompleted = !empty($attempt['completed_at']);
+                                    @endphp
                                     <tr>
                                         <td class="px-4 py-2 text-sm text-gray-900">
-                                            <a href="{{ route('tests.show', $attempt->test) }}" class="text-indigo-600 hover:text-indigo-900">
-                                                {{ $attempt->test->title }}
-                                            </a>
+                                            @if (!empty($attempt['test_slug']))
+                                                <a href="{{ route('tests.show', ['test' => $attempt['test_slug']]) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                    {{ $attempt['test_title'] ?? 'Тест' }}
+                                                </a>
+                                            @else
+                                                {{ $attempt['test_title'] ?? 'Тест' }}
+                                            @endif
                                         </td>
                                         <td class="px-4 py-2 text-sm">
-                                            @if ($attempt->isCompleted())
+                                            @if ($isCompleted)
                                                 <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
                                                     Завершено
                                                 </span>
@@ -44,14 +54,17 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-700">
-                                            @if ($attempt->isCompleted())
-                                                {{ $attempt->score_percent ?? '—' }}%
+                                            @if ($isCompleted)
+                                                {{ $attempt['score_percent'] !== null ? $attempt['score_percent'] : '—' }}%
                                             @else
                                                 —
                                             @endif
                                         </td>
                                         <td class="px-4 py-2 text-sm text-gray-500">
-                                            {{ optional($attempt->completed_at ?? $attempt->created_at)->format('d.m.Y H:i') }}
+                                            @php
+                                                $timestamp = $attempt['completed_at'] ?? $attempt['started_at'] ?? null;
+                                            @endphp
+                                            {{ $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp)->format('d.m.Y H:i') : '—' }}
                                         </td>
                                     </tr>
                                 @endforeach

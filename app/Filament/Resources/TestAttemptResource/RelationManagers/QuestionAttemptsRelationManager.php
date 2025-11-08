@@ -24,7 +24,8 @@ class QuestionAttemptsRelationManager extends RelationManager
                 TextColumn::make('question.text')
                     ->label('Вопрос')
                     ->wrap()
-                    ->limit(120),
+                    ->width('32rem')
+                    ->extraAttributes(['class' => 'whitespace-normal']),
                 TextColumn::make('question.type')
                     ->label('Тип')
                     ->formatStateUsing(fn (string $state) => $state === \App\Models\Question::TYPE_SINGLE ? 'Один вариант' : 'Несколько вариантов'),
@@ -34,7 +35,10 @@ class QuestionAttemptsRelationManager extends RelationManager
                 TextColumn::make('points_awarded')
                     ->label('Баллы'),
                 TextColumn::make('selected_option_text')
-                    ->label('Выбранные варианты'),
+                    ->label('Выбранные варианты')
+                    ->wrap()
+                    ->width('28rem')
+                    ->extraAttributes(['class' => 'whitespace-normal']),
             ])
             ->defaultSort('question_id')
             ->paginated(false)

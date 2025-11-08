@@ -39,10 +39,13 @@ class TestAttemptResource extends Resource
                     ->label('ID')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('user.name')
-                    ->label('Пользователь')
+                TextColumn::make('participant_name')
+                    ->label('ФИО')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('participant_email')
+                    ->label('Email')
+                    ->searchable(),
                 TextColumn::make('test.title')
                     ->label('Тест')
                     ->searchable()
@@ -92,13 +95,13 @@ class TestAttemptResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Данные пользователя и теста')
+            Section::make('Данные участника и теста')
                 ->schema([
                     Grid::make()
                         ->schema([
-                            TextEntry::make('user.name')
-                                ->label('Пользователь'),
-                            TextEntry::make('user.email')
+                            TextEntry::make('participant_name')
+                                ->label('ФИО'),
+                            TextEntry::make('participant_email')
                                 ->label('Email'),
                             TextEntry::make('test.title')
                                 ->label('Тест'),
@@ -155,7 +158,7 @@ class TestAttemptResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['user', 'test'])
+            ->with(['test'])
             ->latest();
     }
 

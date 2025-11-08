@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\AnswerOption;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,7 +58,7 @@ class QuestionAttempt extends Model
             ->values();
 
         if ($options->isEmpty()) {
-            $options = \App\Models\AnswerOption::query()
+            $options = AnswerOption::query()
                 ->whereIn('id', $ids)
                 ->pluck('text')
                 ->unique()

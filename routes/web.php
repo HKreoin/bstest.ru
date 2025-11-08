@@ -18,6 +18,7 @@ Route::get('/tests/{test:slug}', [TestController::class, 'show'])->name('tests.s
 Route::post('/tests/{test:slug}/start', [TestController::class, 'start'])->name('tests.start');
 
 Route::get('/attempts/{testAttempt}', [TestAttemptController::class, 'show'])->name('attempts.show');
+Route::get('/attempts/{testAttempt}/protocol', [TestAttemptController::class, 'downloadProtocol'])->name('attempts.protocol');
 Route::post('/attempts/{testAttempt}', [TestAttemptController::class, 'submit'])->name('attempts.submit');
 
 Route::middleware('auth')->group(function () {

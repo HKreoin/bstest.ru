@@ -7,6 +7,11 @@
 
     <div class="py-10">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-8">
+            @if (request()->boolean('print'))
+                <script>
+                    window.addEventListener('load', () => window.print());
+                </script>
+            @endif
             <div class="bg-white shadow sm:rounded-lg p-6 space-y-4">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div class="space-y-1 text-sm text-gray-600">
@@ -39,9 +44,14 @@
                     @endif
                 </div>
                 <div>
-                    <a href="{{ route('tests.show', $attempt->test) }}" class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
-                        Вернуться к тесту
-                    </a>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{{ route('attempts.protocol', $attempt) }}" class="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-700">
+                            Скачать протокол (Word)
+                        </a>
+                        <a href="{{ route('tests.show', $attempt->test) }}" class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+                            Вернуться к тесту
+                        </a>
+                    </div>
                 </div>
             </div>
 

@@ -17,6 +17,18 @@ class ViewTestAttempt extends ViewRecord
                 ->label('К списку')
                 ->url(static::getResource()::getUrl('index'))
                 ->color('gray'),
+            Action::make('downloadProtocol')
+                ->label('Скачать протокол (Word)')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('primary')
+                ->url(fn () => route('attempts.protocol', $this->record))
+                ->openUrlInNewTab(false),
+            Action::make('print')
+                ->label('Печать протокола')
+                ->icon('heroicon-o-printer')
+                ->color('gray')
+                ->url(fn () => route('attempts.show', ['testAttempt' => $this->record, 'print' => 1]))
+                ->openUrlInNewTab(),
         ];
     }
 }

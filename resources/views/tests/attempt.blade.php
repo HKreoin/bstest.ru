@@ -25,7 +25,22 @@
                             <p>Время на прохождение: <span class="font-semibold text-gray-900">{{ $attempt->test->time_limit_minutes }} минут</span></p>
                         @endif
                     </div>
-                    <div>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        @if ($attempt->test->time_limit_minutes && $attempt->started_at)
+                            @php
+                                $deadline = $attempt->started_at->addMinutes($attempt->test->time_limit_minutes);
+                            @endphp
+                            <div class="flex items-center gap-2 text-red-600">
+                                <span>Оставшееся время:</span>
+                                <span
+                                    id="attempt-timer"
+                                    class="font-semibold"
+                                    data-deadline="{{ $deadline->toIso8601String() }}"
+                                >
+                                    —
+                                </span>
+                            </div>
+                        @endif
                         <a href="{{ route('tests.show', $attempt->test) }}" class="text-sm text-indigo-600 hover:text-indigo-900">
                             Вернуться к описанию теста
                         </a>
@@ -101,4 +116,51 @@
         </div>
     </div>
 </x-app-layout>
+@if ($attempt->test->time_limit_minutes && $attempt->started_at)
+    <script>
+        (() => {
+            const timerEl = document.getElementById('attempt-timer');
+            if (!timerEl) {
+                return;
+            }
 
+            const deadline = new Date(timerEl.dataset.deadline);
+
+            const formatTime = (totalSeconds) => {
+                if (totalSeconds < 0) {
+                    totalSeconds = 0;
+                }
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = Math.floor(totalSeconds % 60);
+
+                const segments = [
+                    hours.toString().padStart(2, '0'),
+                    minutes.toString().padStart(2, '0'),
+                    seconds.toString().padStart(2, '0'),
+                ];
+
+                return segments.join(':');
+            };
+
+            const updateTimer = () => {
+                const now = new Date();
+                const diff = Math.floor((deadline.getTime() - now.getTime()) / 1000);
+
+                timerEl.textContent = formatTime(diff);
+
+                if (diff <= 60) {
+                    timerEl.classList.add('text-red-700');
+                }
+
+                if (diff <= 0) {
+                    clearInterval(intervalId);
+                    timerEl.classList.add('animate-pulse');
+                }
+            };
+
+            updateTimer();
+            const intervalId = setInterval(updateTimer, 1000);
+        })();
+    </script>
+@endif

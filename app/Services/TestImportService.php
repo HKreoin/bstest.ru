@@ -76,12 +76,17 @@ class TestImportService
         $currentQuestion = null;
         $waitingForAnswer = false;
         $currentAnswerCorrect = false;
+        $lastAnswerLabel = null;
 
         foreach ($lines as $line) {
             $line = rtrim($line, "\r\n");
             $trimmed = trim($line);
 
             if ($trimmed === '') {
+                continue;
+            }
+
+            if ($this->isTechnicalLine($trimmed)) {
                 continue;
             }
 
@@ -97,6 +102,7 @@ class TestImportService
 
                 $waitingForAnswer = false;
                 $currentAnswerCorrect = false;
+                $lastAnswerLabel = null;
 
                 continue;
             }
@@ -120,6 +126,9 @@ class TestImportService
                 $currentQuestion['question_lines'][] = $line;
                 $waitingForAnswer = false;
                 $currentAnswerCorrect = false;
+                $lastAnswerLabel = null;
+
+                $this->extractInlineAnswers($currentQuestion, $line);
 
                 continue;
             }
@@ -127,6 +136,7 @@ class TestImportService
             if ($trimmed === '+') {
                 $waitingForAnswer = true;
                 $currentAnswerCorrect = true;
+                $lastAnswerLabel = null;
 
                 continue;
             }
@@ -134,6 +144,7 @@ class TestImportService
             if ($trimmed === '-') {
                 $waitingForAnswer = true;
                 $currentAnswerCorrect = false;
+                $lastAnswerLabel = null;
 
                 continue;
             }
@@ -145,7 +156,9 @@ class TestImportService
                     $currentQuestion['answers'][] = [
                         'text' => $answerText,
                         'is_correct' => $currentAnswerCorrect,
+                        'label' => $this->extractAnswerLabel($answerText),
                     ];
+                    $lastAnswerLabel = $this->extractAnswerLabel($answerText);
                 }
 
                 $waitingForAnswer = false;
@@ -155,7 +168,21 @@ class TestImportService
             }
 
             if ($currentQuestion !== null) {
-                if ($trimmed !== '') {
+                if ($currentQuestion['answers'] && $this->looksLikeAnswer($trimmed)) {
+                    $label = $this->extractAnswerLabel($trimmed);
+
+                    if ($label !== null && $label === $lastAnswerLabel) {
+                        $this->markAnswerAsCorrectByLabel($currentQuestion, $label);
+                    } else {
+                        $currentQuestion['answers'][] = [
+                            'text' => $trimmed,
+                            'is_correct' => false,
+                            'label' => $label,
+                        ];
+                    }
+
+                    $lastAnswerLabel = $label;
+                } elseif ($trimmed !== '') {
                     $currentQuestion['question_lines'][] = $line;
                 }
             }
@@ -175,6 +202,12 @@ class TestImportService
         $questionText = trim(implode("\n", $questionData['question_lines'] ?? []));
         $answers = collect($questionData['answers'] ?? [])
             ->filter(fn (array $answer) => trim($answer['text']) !== '')
+            ->map(fn (array $answer) => [
+                'text' => trim($this->stripAnswerLabel($answer['text'])),
+                'is_correct' => $answer['is_correct'],
+                'label' => $answer['label'] ?? null,
+            ])
+            ->unique(fn (array $answer) => $answer['text'])
             ->values();
 
         if ($questionText === '' || $answers->isEmpty()) {
@@ -198,10 +231,71 @@ class TestImportService
 
         return [
             'question' => $questionText,
-            'answers' => $answers->toArray(),
+            'answers' => $answers
+                ->map(fn (array $answer) => [
+                    'text' => $answer['text'],
+                    'is_correct' => $answer['is_correct'],
+                ])
+                ->toArray(),
             'type' => $type,
             'points' => 1,
         ];
+    }
+
+    protected function extractInlineAnswers(array &$currentQuestion, string $line): void
+    {
+        preg_match_all('/([A-ЯЁA-Z])\)\s*([^A-ЯЁA-Z]+)/u', $line, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $label = $match[1];
+            $text = trim($match[2]);
+
+            if ($text === '') {
+                continue;
+            }
+
+            $currentQuestion['answers'][] = [
+                'text' => $text,
+                'is_correct' => false,
+                'label' => $label,
+            ];
+        }
+    }
+
+    protected function extractAnswerLabel(string $text): ?string
+    {
+        if (preg_match('/^([A-ЯЁA-Z])\)/u', $text, $match)) {
+            return $match[1];
+        }
+
+        return null;
+    }
+
+    protected function stripAnswerLabel(string $text): string
+    {
+        return preg_replace('/^[A-ЯЁA-Z]\)\s*/u', '', $text);
+    }
+
+    protected function looksLikeAnswer(string $line): bool
+    {
+        return (bool) preg_match('/^([A-ЯЁA-Z])\)/u', $line);
+    }
+
+    protected function markAnswerAsCorrectByLabel(array &$currentQuestion, string $label): void
+    {
+        foreach ($currentQuestion['answers'] as &$answer) {
+            if (($answer['label'] ?? null) === $label) {
+                $answer['is_correct'] = true;
+                break;
+            }
+        }
+    }
+
+    protected function isTechnicalLine(string $line): bool
+    {
+        return Str::of($line)
+            ->lower()
+            ->contains('балл');
     }
 }
 

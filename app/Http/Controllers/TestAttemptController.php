@@ -66,7 +66,11 @@ class TestAttemptController extends Controller
     public function submit(SubmitTestAttemptRequest $request, TestAttempt $testAttempt): RedirectResponse
     {
         abort_unless($this->canAccessAttempt($request, $testAttempt), 403);
-        abort_if($testAttempt->isCompleted(), 400, 'Попытка уже завершена.');
+        if ($testAttempt->isCompleted()) {
+            return redirect()
+                ->route('attempts.show', $testAttempt)
+                ->with('status', 'Попытка уже завершена.');
+        }
 
         $answers = $request->validated('answers');
 

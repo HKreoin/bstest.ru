@@ -52,6 +52,9 @@
                         <a href="{{ route('attempts.protocol', $attempt) }}" class="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-700">
                             Скачать протокол (Word)
                         </a>
+                        <a href="{{ route('attempts.show', [$attempt, 'print' => 1]) }}" target="_blank" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                            Распечатать протокол
+                        </a>
                         <a href="{{ route('tests.show', $attempt->test) }}" class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
                             Вернуться к тесту
                         </a>

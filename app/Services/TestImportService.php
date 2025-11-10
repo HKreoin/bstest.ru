@@ -167,24 +167,32 @@ class TestImportService
                 continue;
             }
 
-            if ($currentQuestion !== null) {
-                if ($currentQuestion['answers'] && $this->looksLikeAnswer($trimmed)) {
-                    $label = $this->extractAnswerLabel($trimmed);
+            if ($currentQuestion !== null && $this->looksLikeAnswer($trimmed)) {
+                $label = $this->extractAnswerLabel($trimmed);
 
-                    if ($label !== null && $label === $lastAnswerLabel) {
-                        $this->markAnswerAsCorrectByLabel($currentQuestion, $label);
-                    } else {
+                if ($label !== null && $label === $lastAnswerLabel) {
+                    $this->markAnswerAsCorrectByLabel($currentQuestion, $label);
+                } else {
+                    $text = trim($this->stripAnswerLabel($trimmed));
+
+                    if ($text !== '') {
                         $currentQuestion['answers'][] = [
-                            'text' => $trimmed,
+                            'text' => $text,
                             'is_correct' => false,
                             'label' => $label,
                         ];
                     }
-
-                    $lastAnswerLabel = $label;
-                } elseif ($trimmed !== '') {
-                    $currentQuestion['question_lines'][] = $line;
                 }
+
+                $lastAnswerLabel = $label;
+                $waitingForAnswer = false;
+                $currentAnswerCorrect = false;
+
+                continue;
+            }
+
+            if ($currentQuestion !== null && $trimmed !== '') {
+                $currentQuestion['question_lines'][] = $line;
             }
         }
 

@@ -28,6 +28,8 @@ class TestImportService
             throw new RuntimeException('Не удалось прочитать файл.');
         }
 
+        $content = $this->convertToUtf8($content);
+
         $questionsData = $this->parseContent($content);
 
         if ($questionsData->isEmpty()) {
@@ -87,6 +89,32 @@ class TestImportService
             }
 
             if ($this->isTechnicalLine($trimmed)) {
+                continue;
+            }
+
+            if (preg_match('/^([+-])\s*(.+)$/u', $trimmed, $match)) {
+                $isCorrectInline = $match[1] === '+';
+                $answerText = trim($match[2]);
+
+                if ($currentQuestion === null) {
+                    $currentQuestion = [
+                        'question_lines' => [],
+                        'answers' => [],
+                    ];
+                }
+
+                if ($answerText !== '') {
+                    $currentQuestion['answers'][] = [
+                        'text' => $answerText,
+                        'is_correct' => $isCorrectInline,
+                        'label' => $this->extractAnswerLabel($answerText),
+                    ];
+                    $lastAnswerLabel = $this->extractAnswerLabel($answerText);
+                }
+
+                $waitingForAnswer = false;
+                $currentAnswerCorrect = false;
+
                 continue;
             }
 
@@ -304,6 +332,59 @@ class TestImportService
         return Str::of($line)
             ->lower()
             ->contains('балл');
+    }
+
+    protected function convertToUtf8(string $content): string
+    {
+        if (mb_detect_encoding($content, 'UTF-8', true)) {
+            return $this->stripBom($content);
+        }
+
+        $encodings = [
+            'UTF-16LE',
+            'UTF-16BE',
+            'UTF-32LE',
+            'UTF-32BE',
+            'Windows-1251',
+            'CP1251',
+            'KOI8-R',
+            'ISO-8859-5',
+        ];
+
+        $detected = mb_detect_encoding($content, $encodings, true);
+
+        if ($detected !== false && $detected !== 'UTF-8') {
+            $converted = @iconv($detected, 'UTF-8//TRANSLIT//IGNORE', $content);
+
+            if ($converted !== false && mb_detect_encoding($converted, 'UTF-8', true)) {
+                return $this->stripBom($converted);
+            }
+
+            $converted = @mb_convert_encoding($content, 'UTF-8', $detected);
+
+            if ($converted !== false && mb_detect_encoding($converted, 'UTF-8', true)) {
+                return $this->stripBom($converted);
+            }
+        }
+
+        foreach ($encodings as $encoding) {
+            $converted = @iconv($encoding, 'UTF-8//TRANSLIT//IGNORE', $content);
+
+            if ($converted !== false && mb_detect_encoding($converted, 'UTF-8', true)) {
+                return $this->stripBom($converted);
+            }
+        }
+
+        $fallback = @mb_convert_encoding($content, 'UTF-8', 'auto');
+
+        $final = $fallback !== false ? $fallback : $content;
+
+        return $this->stripBom($final);
+    }
+
+    protected function stripBom(string $content): string
+    {
+        return preg_replace('/^\xEF\xBB\xBF/', '', $content) ?? $content;
     }
 }
 

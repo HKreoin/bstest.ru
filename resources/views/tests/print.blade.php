@@ -111,16 +111,25 @@
             <th>№</th>
             <th>Вопрос</th>
             <th>Выбранные ответы</th>
+            <th>Правильные ответы</th>
             <th>Баллы</th>
             <th>Статус</th>
         </tr>
     </thead>
     <tbody>
         @foreach ($attempt->questionAttempts as $index => $questionAttempt)
+            @php
+                $correctOptions = $questionAttempt->question->answerOptions
+                    ->where('is_correct', true)
+                    ->pluck('text')
+                    ->filter()
+                    ->implode('; ');
+            @endphp
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>{{ $questionAttempt->question->text }}</td>
                 <td>{{ $questionAttempt->selected_option_text }}</td>
+                <td>{{ $correctOptions }}</td>
                 <td>{{ $questionAttempt->points_awarded }} / {{ $questionAttempt->question->points }}</td>
                 <td>
                     <span class="status {{ $questionAttempt->is_correct ? 'success' : 'fail' }}">

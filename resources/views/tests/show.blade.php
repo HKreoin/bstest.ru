@@ -75,6 +75,16 @@
                 </form>
             </div>
 
+            <div class="bg-white shadow sm:rounded-lg p-6 space-y-4">
+                <h3 class="text-lg font-medium text-gray-900">Режим тренажёра</h3>
+                <p class="text-sm text-gray-600">
+                    Пройдите тренировку без ограничений по времени и без сохранения результатов. Можно выбрать количество вопросов и порядок прохождения.
+                </p>
+                <a href="{{ route('tests.training.configure', $test) }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                    Настроить тренировку
+                </a>
+            </div>
+
             @php
                 $recentAttemptsList = collect($recentAttempts);
             @endphp

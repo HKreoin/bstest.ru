@@ -54,8 +54,8 @@
             font-weight:600;
             transition:all .3s ease;
         }
-        .btn--primary{background:var(--accent);color:#1a1a1a;box-shadow:0 18px 35px rgba(245,180,0,0.25)}
-        .btn--primary:hover{transform:translateY(-3px);box-shadow:0 25px 40px rgba(245,180,0,0.35)}
+        .btn--primary{background:var(--accent);color:#1a1a1a}
+        .btn--primary:hover{transform:translateY(-3px)}
         .btn--outline{border:1px solid rgba(255,255,255,0.6);color:#fff}
         .btn--outline:hover{background:rgba(255,255,255,0.1)}
         .hero__stats{margin-top:54px;display:flex;flex-wrap:wrap;gap:32px}

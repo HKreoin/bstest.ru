@@ -229,8 +229,17 @@ class TestAttemptController extends Controller
         ]);
 
         foreach ($attempt->questionAttempts as $index => $questionAttempt) {
+            $correctOptionsText = $questionAttempt->question->answerOptions
+                ->where('is_correct', true)
+                ->pluck('text')
+                ->filter()
+                ->implode('; ');
+
             $lines[] = '\pard\sa140\f0\fs20 ' . $this->rtfText(($index + 1).'. '.$questionAttempt->question->text) . '\par';
             $lines[] = '\pard\fi360\sa100\f0\fs18 ' . $this->rtfText('Ответы: '.$questionAttempt->selected_option_text) . '\par';
+            if ($correctOptionsText !== '') {
+                $lines[] = '\pard\fi360\sa100\f0\fs18 ' . $this->rtfText('Правильные ответы: '.$correctOptionsText) . '\par';
+            }
             $lines[] = '\pard\fi360\sa200\f0\fs18 ' . $this->rtfText(sprintf(
                 'Баллы: %d / %d. Статус: %s',
                 $questionAttempt->points_awarded,

@@ -49,6 +49,9 @@
                 </div>
                 <div>
                     <div class="flex flex-wrap gap-3">
+                        <button type="button" onclick="window.print()" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                            Распечатать результат
+                        </button>
                         <a href="{{ route('attempts.protocol', $attempt) }}" class="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-gray-700">
                             Скачать протокол (Word)
                         </a>

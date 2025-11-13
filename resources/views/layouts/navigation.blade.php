@@ -40,10 +40,6 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            <x-dropdown-link :href="route('profile.edit')">
-                                {{ __('Profile') }}
-                            </x-dropdown-link>
-
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -58,10 +54,10 @@
                     </x-dropdown>
                 @else
                     <div class="flex items-center space-x-4">
-                        <a href="{{ route('login') }}" class="text-sm text-gray-600 hover:text-gray-800">
+                        <a href="{{ url('/admin/login') }}" class="text-sm text-gray-600 hover:text-gray-800">
                             Войти
                         </a>
-                        <a href="{{ route('register') }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+                        <a href="{{ url('/admin/register') }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
                             Регистрация
                         </a>
                     </div>
@@ -102,10 +98,6 @@
                 </div>
 
                 <div class="mt-3 space-y-1">
-                    <x-responsive-nav-link :href="route('profile.edit')">
-                        {{ __('Profile') }}
-                    </x-responsive-nav-link>
-
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
 
@@ -118,10 +110,10 @@
                 </div>
             @else
                 <div class="px-4 space-y-3">
-                    <a href="{{ route('login') }}" class="block text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                    <a href="{{ url('/admin/login') }}" class="block text-sm font-medium text-indigo-600 hover:text-indigo-800">
                         Войти
                     </a>
-                    <a href="{{ route('register') }}" class="block text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                    <a href="{{ url('/admin/register') }}" class="block text-sm font-medium text-indigo-600 hover:text-indigo-800">
                         Регистрация
                     </a>
                 </div>

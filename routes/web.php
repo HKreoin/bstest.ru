@@ -1,9 +1,10 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TestAttemptController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TestTrainingController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -12,7 +13,16 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth'])->name('dashboard');
+
+Route::post('/logout', function (Request $request) {
+    Auth::guard('web')->logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()->route('landing');
+})->name('logout');
 
 Route::get('/tests', [TestController::class, 'index'])->name('tests.index');
 Route::get('/tests/{test:slug}', [TestController::class, 'show'])->name('tests.show');
@@ -29,10 +39,3 @@ Route::get('/attempts/{testAttempt}', [TestAttemptController::class, 'show'])->n
 Route::get('/attempts/{testAttempt}/protocol', [TestAttemptController::class, 'downloadProtocol'])->name('attempts.protocol');
 Route::post('/attempts/{testAttempt}', [TestAttemptController::class, 'submit'])->name('attempts.submit');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-require __DIR__.'/auth.php';

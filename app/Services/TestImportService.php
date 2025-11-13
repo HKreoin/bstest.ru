@@ -135,6 +135,24 @@ class TestImportService
                 continue;
             }
 
+            if ($waitingForAnswer && $currentQuestion !== null) {
+                $answerText = trim($line);
+
+                if ($answerText !== '') {
+                    $currentQuestion['answers'][] = [
+                        'text' => $answerText,
+                        'is_correct' => $currentAnswerCorrect,
+                        'label' => $this->extractAnswerLabel($answerText),
+                    ];
+                    $lastAnswerLabel = $this->extractAnswerLabel($answerText);
+                }
+
+                $waitingForAnswer = false;
+                $currentAnswerCorrect = false;
+
+                continue;
+            }
+
             if (preg_match('/^\d+[\.\)]/', $trimmed)) {
                 if (
                     $currentQuestion !== null
@@ -173,24 +191,6 @@ class TestImportService
                 $waitingForAnswer = true;
                 $currentAnswerCorrect = false;
                 $lastAnswerLabel = null;
-
-                continue;
-            }
-
-            if ($waitingForAnswer && $currentQuestion !== null) {
-                $answerText = trim($line);
-
-                if ($answerText !== '') {
-                    $currentQuestion['answers'][] = [
-                        'text' => $answerText,
-                        'is_correct' => $currentAnswerCorrect,
-                        'label' => $this->extractAnswerLabel($answerText),
-                    ];
-                    $lastAnswerLabel = $this->extractAnswerLabel($answerText);
-                }
-
-                $waitingForAnswer = false;
-                $currentAnswerCorrect = false;
 
                 continue;
             }

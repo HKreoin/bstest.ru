@@ -12,14 +12,17 @@ services:
       - bstest-network
 
   nginx:
-    image: nginx:alpine
+    build:
+      context: ./docker/nginx
     container_name: bstest_nginx
     restart: unless-stopped
     ports:
       - "80:80"
     volumes:
       - ./:/var/www/html
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - nginx-conf:/etc/nginx/conf.d
     depends_on:
       - app
     networks:
@@ -46,5 +49,11 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  certbot-etc:
+    driver: local
+  certbot-var:
+    driver: local
+  nginx-conf:
     driver: local
 

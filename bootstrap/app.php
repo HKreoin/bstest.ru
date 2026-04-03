@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: [
             'bstest_cookie_consent',
         ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\AddHtmlCacheHeaders::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

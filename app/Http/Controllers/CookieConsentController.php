@@ -22,7 +22,7 @@ class CookieConsentController extends Controller
                 '/',
                 null,
                 $request->secure(),
-                true,
+                false,
                 false,
                 'lax'
             );

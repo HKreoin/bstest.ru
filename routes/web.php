@@ -37,9 +37,9 @@ Route::prefix('/tests/{test:slug}/trainer')->name('tests.training.')->group(func
     Route::post('/start', [TestTrainingController::class, 'start'])->name('start');
     Route::get('/session/{session}', [TestTrainingController::class, 'attempt'])->name('attempt');
     Route::post('/session/{session}', [TestTrainingController::class, 'submit'])->name('submit');
+    Route::post('/session/{session}/next', [TestTrainingController::class, 'next'])->name('next');
 });
 
 Route::get('/attempts/{testAttempt}', [TestAttemptController::class, 'show'])->name('attempts.show');
 Route::get('/attempts/{testAttempt}/protocol', [TestAttemptController::class, 'downloadProtocol'])->name('attempts.protocol');
 Route::post('/attempts/{testAttempt}', [TestAttemptController::class, 'submit'])->name('attempts.submit');
-

@@ -7,7 +7,6 @@ use App\Models\Test;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class TestTrainingController extends Controller
@@ -61,6 +60,9 @@ class TestTrainingController extends Controller
                     ])
                     ->toArray(),
             ])->toArray(),
+            'current_index' => 0,
+            'results' => [],
+            'last_result' => null,
         ]);
 
         return redirect()->route('tests.training.attempt', [
@@ -73,10 +75,25 @@ class TestTrainingController extends Controller
     {
         $sessionData = $this->resolveSession($request, $test, $session);
 
+        $questions = $sessionData['questions'] ?? [];
+        $totalQuestions = count($questions);
+
+        $currentIndex = (int) ($sessionData['current_index'] ?? 0);
+        abort_if($currentIndex < 0 || $currentIndex >= $totalQuestions, 404);
+
+        $question = $questions[$currentIndex];
+
+        $lastResult = $sessionData['last_result'] ?? null;
+        $isLastQuestion = $currentIndex === $totalQuestions - 1;
+
         return view('tests.training.attempt', [
             'test' => $test,
             'sessionId' => $session,
-            'training' => $sessionData,
+            'questionIndex' => $currentIndex + 1,
+            'totalQuestions' => $totalQuestions,
+            'question' => $question,
+            'lastResult' => $lastResult,
+            'isLastQuestion' => $isLastQuestion,
         ]);
     }
 
@@ -84,74 +101,164 @@ class TestTrainingController extends Controller
     {
         $sessionData = $this->resolveSession($request, $test, $session);
 
-        $answersInput = $request->input('answers', []);
+        $questions = $sessionData['questions'] ?? [];
+        $totalQuestions = count($questions);
 
-        $results = collect($sessionData['questions'])
-            ->map(function (array $question, int $index) use ($answersInput) {
-                $selected = $answersInput[$question['id']] ?? null;
+        $currentIndex = (int) ($sessionData['current_index'] ?? 0);
+        abort_if($currentIndex < 0 || $currentIndex >= $totalQuestions, 404);
 
-                $selectedIds = (match (true) {
-                    is_array($selected) => collect($selected),
-                    is_null($selected) => collect(),
-                    default => collect([$selected]),
-                })
-                    ->map(fn ($value) => (int) $value)
-                    ->filter()
-                    ->unique()
-                    ->values();
+        $question = $questions[$currentIndex];
+        $questionId = (int) ($question['id'] ?? 0);
 
-                if ($question['type'] === Question::TYPE_SINGLE && $selectedIds->isNotEmpty()) {
-                    $selectedIds = collect([$selectedIds->first()]);
-                }
+        $optionIds = collect($question['answers'] ?? [])
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
 
-                $correctIds = collect($question['answers'])
-                    ->filter(fn (array $answer) => $answer['is_correct'])
-                    ->pluck('id')
-                    ->map(fn ($id) => (int) $id)
-                    ->sort()
-                    ->values();
+        abort_if(empty($optionIds) || $questionId <= 0, 404);
 
-                $selectedSorted = $selectedIds->sort()->values();
+        $inRule = 'in:'.implode(',', $optionIds);
 
-                $isCorrect = $selectedSorted->isNotEmpty()
-                    && $selectedSorted->count() === $correctIds->count()
-                    && $selectedSorted->every(fn ($id, $key) => $id === $correctIds->get($key));
+        // Валидируем только ответ на текущий вопрос.
+        if ($question['type'] === Question::TYPE_SINGLE) {
+            $validated = $request->validate([
+                'answers.'.$questionId => ['required', 'integer', $inRule],
+            ]);
+        } else {
+            $validated = $request->validate([
+                'answers.'.$questionId => ['required', 'array', 'min:1'],
+                'answers.'.$questionId.'.*' => ['required', 'integer', $inRule],
+            ]);
+        }
 
-                $selectedOptions = collect($question['answers'])
-                    ->filter(fn (array $answer) => $selectedIds->contains((int) $answer['id']))
-                    ->pluck('text')
-                    ->values();
+        $answersInput = $validated['answers'] ?? [];
 
-                $correctOptions = collect($question['answers'])
-                    ->filter(fn (array $answer) => $answer['is_correct'])
-                    ->pluck('text')
-                    ->values();
+        $selected = $answersInput[$questionId] ?? null;
 
+        $selectedIds = (match (true) {
+            is_array($selected) => collect($selected),
+            is_null($selected) => collect(),
+            default => collect([$selected]),
+        })
+            ->map(fn ($value) => (int) $value)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($question['type'] === Question::TYPE_SINGLE && $selectedIds->isNotEmpty()) {
+            $selectedIds = collect([$selectedIds->first()]);
+        }
+
+        $correctIds = collect($question['answers'])
+            ->filter(fn (array $answer) => (bool) $answer['is_correct'])
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->sort()
+            ->values();
+
+        $selectedSorted = $selectedIds->sort()->values();
+
+        $isCorrect = $selectedSorted->isNotEmpty()
+            && $selectedSorted->count() === $correctIds->count()
+            && $selectedSorted->every(fn ($id, $key) => $id === $correctIds->get($key));
+
+        $selectedOptions = collect($question['answers'])
+            ->filter(fn (array $answer) => $selectedIds->contains((int) $answer['id']))
+            ->pluck('text')
+            ->values()
+            ->toArray();
+
+        $correctOptions = collect($question['answers'])
+            ->filter(fn (array $answer) => (bool) $answer['is_correct'])
+            ->pluck('text')
+            ->values()
+            ->toArray();
+
+        $resultItem = [
+            'index' => $currentIndex + 1,
+            'question' => $question,
+            'selected_ids' => $selectedIds->toArray(),
+            'selected_texts' => $selectedOptions,
+            'correct_texts' => $correctOptions,
+            'is_correct' => (bool) $isCorrect,
+            'points_awarded' => $isCorrect ? (int) $question['points'] : 0,
+        ];
+
+        $results = $sessionData['results'] ?? [];
+        $results[] = $resultItem;
+
+        // Оставляем текущий вопрос, сохраняем результат и показываем его сразу же.
+        $sessionData['results'] = $results;
+        $sessionData['last_result'] = $resultItem;
+        $request->session()->put('training_sessions.'.$session, $sessionData);
+
+        return view('tests.training.attempt', [
+            'test' => $test,
+            'sessionId' => $session,
+            'questionIndex' => $currentIndex + 1,
+            'totalQuestions' => $totalQuestions,
+            'question' => $question,
+            'lastResult' => $resultItem,
+            'isLastQuestion' => $currentIndex === $totalQuestions - 1,
+        ]);
+    }
+
+    public function next(Request $request, Test $test, string $session): View|RedirectResponse
+    {
+        $sessionData = $this->resolveSession($request, $test, $session);
+
+        $questions = $sessionData['questions'] ?? [];
+        $totalQuestions = count($questions);
+
+        $currentIndex = (int) ($sessionData['current_index'] ?? 0);
+        abort_if($currentIndex < 0 || $currentIndex >= $totalQuestions, 404);
+
+        // Переходим дальше только после ответа на текущий вопрос.
+        abort_if(empty($sessionData['last_result'] ?? null), 409);
+
+        $newIndex = $currentIndex + 1;
+
+        // Готовим финальный результат.
+        if ($newIndex >= $totalQuestions) {
+            $results = $sessionData['results'] ?? [];
+
+            $totalPoints = collect($questions)->sum(fn (array $q) => (int) ($q['points'] ?? 0));
+            $earnedPoints = collect($results)->sum(fn (array $r) => (int) ($r['points_awarded'] ?? 0));
+            $correctCount = collect($results)->where('is_correct', true)->count();
+
+            $resultsForView = collect($results)->map(function (array $item) {
                 return [
-                    'index' => $index + 1,
-                    'question' => $question,
-                    'selected_ids' => $selectedIds,
-                    'selected_texts' => $selectedOptions,
-                    'correct_texts' => $correctOptions,
-                    'is_correct' => $isCorrect,
-                    'points_awarded' => $isCorrect ? (int) $question['points'] : 0,
+                    'index' => $item['index'],
+                    'question' => $item['question'],
+                    'selected_ids' => collect($item['selected_ids']),
+                    'selected_texts' => collect($item['selected_texts']),
+                    'correct_texts' => collect($item['correct_texts']),
+                    'is_correct' => $item['is_correct'],
+                    'points_awarded' => $item['points_awarded'],
                 ];
             });
 
-        $totalQuestions = $results->count();
-        $totalPoints = $results->sum(fn (array $item) => (int) $item['question']['points']);
-        $earnedPoints = $results->sum('points_awarded');
-        $correctCount = $results->where('is_correct', true)->count();
+            $request->session()->forget('training_sessions.'.$session);
 
-        $request->session()->forget('training_sessions.'.$session);
+            return view('tests.training.result', [
+                'test' => $test,
+                'results' => $resultsForView,
+                'totalQuestions' => $totalQuestions,
+                'correctCount' => $correctCount,
+                'totalPoints' => (int) $totalPoints,
+                'earnedPoints' => (int) $earnedPoints,
+            ]);
+        }
 
-        return view('tests.training.result', [
+        // Иначе — показываем следующий вопрос.
+        $sessionData['current_index'] = $newIndex;
+        unset($sessionData['last_result']);
+        $request->session()->put('training_sessions.'.$session, $sessionData);
+
+        return redirect()->route('tests.training.attempt', [
             'test' => $test,
-            'results' => $results,
-            'totalQuestions' => $totalQuestions,
-            'correctCount' => $correctCount,
-            'totalPoints' => $totalPoints,
-            'earnedPoints' => $earnedPoints,
+            'session' => $session,
         ]);
     }
 
@@ -167,4 +274,3 @@ class TestTrainingController extends Controller
         return $sessionData;
     }
 }
-

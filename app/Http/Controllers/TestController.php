@@ -51,6 +51,7 @@ class TestController extends Controller
         $data = $request->validate([
             'participant_name' => ['required', 'string', 'max:255'],
             'participant_email' => ['nullable', 'email', 'max:255'],
+            'pd_consent' => ['accepted'],
         ]);
 
         $data['participant_name'] = trim($data['participant_name']);
@@ -115,5 +116,3 @@ class TestController extends Controller
         $request->session()->put('allowed_attempt_ids', $allowed);
     }
 }
-
-

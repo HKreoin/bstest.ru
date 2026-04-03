@@ -27,6 +27,10 @@
             <main>
                 {{ $slot }}
             </main>
+
+            @include('layouts.legal-footer')
         </div>
+
+        <x-cookie-consent />
     </body>
 </html>

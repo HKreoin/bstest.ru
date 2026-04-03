@@ -81,6 +81,25 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
+                    <div class="flex items-start gap-2">
+                        <input
+                            type="checkbox"
+                            id="pd_consent"
+                            name="pd_consent"
+                            value="1"
+                            class="mt-1 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            {{ old('pd_consent') ? 'checked' : '' }}
+                            required
+                        >
+                        <label for="pd_consent" class="text-sm text-gray-700">
+                            Согласен(на) на обработку персональных данных (ФИО и при необходимости email) в целях прохождения тестирования,
+                            в соответствии с
+                            <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener noreferrer" class="font-medium text-indigo-600 hover:text-indigo-800">политикой обработки персональных данных</a>.
+                        </label>
+                    </div>
+                    @error('pd_consent')
+                        <p class="text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                     <p class="text-sm text-gray-600">
                         После нажатия «Начать тест» будет сформирована новая попытка. Вы сможете вернуться к результату из этой страницы или сразу после завершения теста.
                     </p>

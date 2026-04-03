@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\TestAttemptController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\TestTrainingController;
@@ -27,6 +28,9 @@ Route::post('/logout', function (Request $request) {
 
     return redirect()->route('landing');
 })->name('logout');
+
+Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
+Route::get('/cookies', [LegalController::class, 'cookies'])->name('legal.cookies');
 
 Route::get('/tests', [TestController::class, 'index'])->name('tests.index');
 Route::get('/tests/{test:slug}', [TestController::class, 'show'])->name('tests.show');

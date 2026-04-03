@@ -94,7 +94,11 @@
                         <label for="pd_consent" class="text-sm text-gray-700">
                             Согласен(на) на обработку персональных данных (ФИО и при необходимости email) в целях прохождения тестирования,
                             в соответствии с
-                            <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener noreferrer" class="font-medium text-indigo-600 hover:text-indigo-800">политикой обработки персональных данных</a>.
+                            <button
+                                type="button"
+                                class="inline border-0 bg-transparent p-0 font-medium text-indigo-600 hover:text-indigo-800"
+                                @click.stop.prevent="$dispatch('open-legal-privacy')"
+                            >политикой обработки персональных данных</button>.
                         </label>
                     </div>
                     @error('pd_consent')

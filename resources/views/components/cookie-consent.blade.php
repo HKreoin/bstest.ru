@@ -24,8 +24,8 @@
     <div class="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm text-gray-700">
             Сайт использует файлы cookie (в том числе для сессии и защиты форм) и может обрабатывать персональные данные.
-            Подробнее — в&nbsp;<a href="{{ route('legal.privacy') }}" class="font-medium text-indigo-600 hover:text-indigo-800">политике обработки персональных данных</a>
-            и&nbsp;<a href="{{ route('legal.cookies') }}" class="font-medium text-indigo-600 hover:text-indigo-800">политике cookie</a>.
+            Подробнее — в&nbsp;<button type="button" class="font-medium text-indigo-600 hover:text-indigo-800" @click="$dispatch('open-legal-privacy')">политике обработки персональных данных</button>
+            и&nbsp;<button type="button" class="font-medium text-indigo-600 hover:text-indigo-800" @click="$dispatch('open-legal-cookies')">политике cookie</button>.
         </p>
         <button
             type="button"

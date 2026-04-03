@@ -16,7 +16,7 @@
                         Тесты
                     </x-nav-link>
                     @if (auth()->check())
-                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                        <x-nav-link :href="route('filament.admin.pages.dashboard')" :active="request()->is('admin*')">
                             Кабинет
                         </x-nav-link>
                     @endif
@@ -78,7 +78,7 @@
                 Тесты
             </x-responsive-nav-link>
             @auth
-                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                <x-responsive-nav-link :href="route('filament.admin.pages.dashboard')" :active="request()->is('admin*')">
                     Кабинет
                 </x-responsive-nav-link>
             @endauth

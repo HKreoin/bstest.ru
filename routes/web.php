@@ -18,7 +18,7 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return redirect()->route('filament.admin.pages.dashboard');
 })->middleware(['auth'])->name('dashboard');
 
 Route::post('/logout', function (Request $request) {

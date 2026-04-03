@@ -42,8 +42,7 @@
             <section class="space-y-2">
                 <h3 class="text-base font-semibold text-gray-900">Персональные данные</h3>
                 <p>
-                    Сведения об обработке персональных данных — в
-                    <a href="{{ route('legal.privacy') }}" class="font-medium text-indigo-600 hover:text-indigo-800">политике обработки персональных данных</a>.
+                    Сведения об обработке персональных данных — в&nbsp;<a href="{{ route('legal.privacy') }}" class="font-medium text-indigo-600 hover:text-indigo-800">политике обработки персональных данных</a>.
                 </p>
             </section>
         </div>

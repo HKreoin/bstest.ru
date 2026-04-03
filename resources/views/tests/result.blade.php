@@ -43,9 +43,6 @@
                 </div>
                 <div class="text-sm text-gray-600">
                     Участник: <span class="font-medium text-gray-900">{{ $attempt->participant_name }}</span>
-                    @if ($attempt->participant_email)
-                        (<span class="text-gray-500">{{ $attempt->participant_email }}</span>)
-                    @endif
                 </div>
                 <div>
                     <div class="flex flex-wrap gap-3">

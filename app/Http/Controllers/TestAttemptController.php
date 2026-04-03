@@ -191,7 +191,7 @@ class TestAttemptController extends Controller
         $completedAtText = $completedAt?->format('d.m.Y H:i') ?? '—';
         $timeSpentSeconds = $attempt->calculatedTimeSpentSeconds();
         $timeSpent = $timeSpentSeconds !== null ? gmdate('H:i:s', $timeSpentSeconds) : '—';
-        $scorePercent = $attempt->score_percent !== null ? number_format((float) $attempt->score_percent, 2) . ' %' : '—';
+        $scorePercent = $attempt->score_percent !== null ? number_format((float) $attempt->score_percent, 2).' %' : '—';
 
         $fullName = trim($attempt->participant_name ?? '');
         $parts = preg_split('/\s+/u', $fullName, -1, PREG_SPLIT_NO_EMPTY) ?: [];
@@ -200,31 +200,27 @@ class TestAttemptController extends Controller
 
         if (count($parts) > 1) {
             $initialsArray = array_slice($parts, 1);
-            $initials = implode(' ', array_map(static fn ($part) => mb_substr($part, 0, 1) . '.', $initialsArray));
+            $initials = implode(' ', array_map(static fn ($part) => mb_substr($part, 0, 1).'.', $initialsArray));
         }
 
-        $signatureName = trim($lastName . ' ' . $initials);
+        $signatureName = trim($lastName.' '.$initials);
 
         $lines = [
             '{\rtf1\ansi\ansicpg1251\deff0',
             '{\fonttbl{\f0 Arial;}}',
             '\viewkind4\uc1',
-            '\pard\qc\f0\fs28 ' . $this->rtfText('Протокол прохождения теста') . '\par',
-            '\pard\qc\f0\fs24 ' . $this->rtfText('«'.$attempt->test->title.'»') . '\par',
+            '\pard\qc\f0\fs28 '.$this->rtfText('Протокол прохождения теста').'\par',
+            '\pard\qc\f0\fs24 '.$this->rtfText('«'.$attempt->test->title.'»').'\par',
             '\pard\par',
-            '\pard\sa160\f0\fs20 ' . $this->rtfText('Участник: '.$attempt->participant_name) . '\par',
+            '\pard\sa160\f0\fs20 '.$this->rtfText('Участник: '.$attempt->participant_name).'\par',
         ];
 
-        if ($attempt->participant_email) {
-            $lines[] = '\pard\sa120\f0\fs20 ' . $this->rtfText('Email: '.$attempt->participant_email) . '\par';
-        }
-
         $lines = array_merge($lines, [
-            '\pard\sa120\f0\fs20 ' . $this->rtfText('Дата завершения (GMT+3): '.$completedAtText) . '\par',
-            '\pard\sa120\f0\fs20 ' . $this->rtfText('Время прохождения: '.$timeSpent) . '\par',
-            '\pard\sa120\f0\fs20 ' . $this->rtfText('Результат: '.$scorePercent.' (проходной минимум '.$attempt->test->passing_score_percent.' %)') . '\par',
-            '\pard\sa240\f0\fs20 ' . $this->rtfText('Итог: '.($attempt->passed ? 'ТЕСТ ПРОЙДЕН' : 'ТЕСТ НЕ ПРОЙДЕН')) . '\par',
-            '\pard\sa200\f0\fs20 ' . $this->rtfText('Правильных ответов: '.$attempt->correct_questions.' из '.$attempt->total_questions) . '\par',
+            '\pard\sa120\f0\fs20 '.$this->rtfText('Дата завершения (GMT+3): '.$completedAtText).'\par',
+            '\pard\sa120\f0\fs20 '.$this->rtfText('Время прохождения: '.$timeSpent).'\par',
+            '\pard\sa120\f0\fs20 '.$this->rtfText('Результат: '.$scorePercent.' (проходной минимум '.$attempt->test->passing_score_percent.' %)').'\par',
+            '\pard\sa240\f0\fs20 '.$this->rtfText('Итог: '.($attempt->passed ? 'ТЕСТ ПРОЙДЕН' : 'ТЕСТ НЕ ПРОЙДЕН')).'\par',
+            '\pard\sa200\f0\fs20 '.$this->rtfText('Правильных ответов: '.$attempt->correct_questions.' из '.$attempt->total_questions).'\par',
             '\pard\sa240\par',
         ]);
 
@@ -235,23 +231,23 @@ class TestAttemptController extends Controller
                 ->filter()
                 ->implode('; ');
 
-            $lines[] = '\pard\sa140\f0\fs20 ' . $this->rtfText(($index + 1).'. '.$questionAttempt->question->text) . '\par';
-            $lines[] = '\pard\fi360\sa100\f0\fs18 ' . $this->rtfText('Ответы: '.$questionAttempt->selected_option_text) . '\par';
+            $lines[] = '\pard\sa140\f0\fs20 '.$this->rtfText(($index + 1).'. '.$questionAttempt->question->text).'\par';
+            $lines[] = '\pard\fi360\sa100\f0\fs18 '.$this->rtfText('Ответы: '.$questionAttempt->selected_option_text).'\par';
             if ($correctOptionsText !== '') {
-                $lines[] = '\pard\fi360\sa100\f0\fs18 ' . $this->rtfText('Правильные ответы: '.$correctOptionsText) . '\par';
+                $lines[] = '\pard\fi360\sa100\f0\fs18 '.$this->rtfText('Правильные ответы: '.$correctOptionsText).'\par';
             }
-            $lines[] = '\pard\fi360\sa200\f0\fs18 ' . $this->rtfText(sprintf(
+            $lines[] = '\pard\fi360\sa200\f0\fs18 '.$this->rtfText(sprintf(
                 'Баллы: %d / %d. Статус: %s',
                 $questionAttempt->points_awarded,
                 $questionAttempt->question->points,
                 $questionAttempt->is_correct ? 'Верно' : 'Неверно'
-            )) . '\par';
+            )).'\par';
             $lines[] = '\pard\sa180\par';
         }
 
         $lines = array_merge($lines, [
-            '\pard\sa280\f0\fs18 ' . $this->rtfText('Подпись участника: ____________________ ' . ($signatureName !== '' ? '(' . $signatureName . ')' : '')) . '\par',
-            '\pard\sa120\f0\fs18 ' . $this->rtfText('Дата: ' . $completedAtText) . '\par',
+            '\pard\sa280\f0\fs18 '.$this->rtfText('Подпись участника: ____________________ '.($signatureName !== '' ? '('.$signatureName.')' : '')).'\par',
+            '\pard\sa120\f0\fs18 '.$this->rtfText('Дата: '.$completedAtText).'\par',
             '}',
         ]);
 
@@ -272,5 +268,3 @@ class TestAttemptController extends Controller
         return preg_replace("/(\r\n|\r|\n)/", '\\par ', $escaped);
     }
 }
-
-

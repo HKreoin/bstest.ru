@@ -12,12 +12,14 @@ class TestAttempt extends Model
     use HasFactory;
 
     public const STATUS_IN_PROGRESS = 'in_progress';
+
     public const STATUS_COMPLETED = 'completed';
 
     protected $fillable = [
         'test_id',
         'participant_name',
         'participant_email',
+        'personal_data_consent_at',
         'status',
         'total_questions',
         'correct_questions',
@@ -39,6 +41,7 @@ class TestAttempt extends Model
         'passed' => 'boolean',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'personal_data_consent_at' => 'datetime',
         'time_spent_seconds' => 'integer',
     ];
 

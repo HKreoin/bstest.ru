@@ -68,19 +68,6 @@
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    <div>
-                        <label for="participant_email" class="block text-sm font-medium text-gray-700">Email (необязательно)</label>
-                        <input
-                            type="email"
-                            id="participant_email"
-                            name="participant_email"
-                            value="{{ old('participant_email', auth()->user()?->email) }}"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm text-gray-700"
-                        >
-                        @error('participant_email')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
                     <div class="flex items-start gap-2">
                         <input
                             type="checkbox"
@@ -92,7 +79,7 @@
                             required
                         >
                         <label for="pd_consent" class="text-sm text-gray-700">
-                            Согласен(на) на обработку персональных данных (ФИО и при необходимости email) в целях прохождения тестирования,
+                            Согласен(на) на обработку персональных данных (ФИО) в целях прохождения тестирования,
                             в соответствии с
                             <button
                                 type="button"

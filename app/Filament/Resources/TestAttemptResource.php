@@ -43,9 +43,6 @@ class TestAttemptResource extends Resource
                     ->label('ФИО')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('participant_email')
-                    ->label('Email')
-                    ->searchable(),
                 TextColumn::make('test.title')
                     ->label('Тест')
                     ->searchable()
@@ -101,8 +98,10 @@ class TestAttemptResource extends Resource
                         ->schema([
                             TextEntry::make('participant_name')
                                 ->label('ФИО'),
-                            TextEntry::make('participant_email')
-                                ->label('Email'),
+                            TextEntry::make('personal_data_consent_at')
+                                ->label('Согласие на ПДн (зафиксировано)')
+                                ->dateTime()
+                                ->placeholder('—'),
                             TextEntry::make('test.title')
                                 ->label('Тест'),
                             TextEntry::make('test.passing_score_percent')
@@ -171,5 +170,3 @@ class TestAttemptResource extends Resource
         return 'Аналитика';
     }
 }
-
-

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CookieConsentController;
 use App\Http\Controllers\LegalController;
 use App\Http\Controllers\TestAttemptController;
 use App\Http\Controllers\TestController;
@@ -28,6 +29,8 @@ Route::post('/logout', function (Request $request) {
 
     return redirect()->route('landing');
 })->name('logout');
+
+Route::post('/cookie-consent', [CookieConsentController::class, 'store'])->name('cookie-consent.store');
 
 Route::get('/privacy', [LegalController::class, 'privacy'])->name('legal.privacy');
 Route::get('/cookies', [LegalController::class, 'cookies'])->name('legal.cookies');

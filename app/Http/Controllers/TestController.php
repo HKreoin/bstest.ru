@@ -50,12 +50,10 @@ class TestController extends Controller
 
         $data = $request->validate([
             'participant_name' => ['required', 'string', 'max:255'],
-            'participant_email' => ['nullable', 'email', 'max:255'],
             'pd_consent' => ['accepted'],
         ]);
 
         $data['participant_name'] = trim($data['participant_name']);
-        $data['participant_email'] = isset($data['participant_email']) ? trim((string) $data['participant_email']) : null;
 
         return DB::transaction(function () use ($request, $test, $data): RedirectResponse {
             $questions = $test->drawQuestionsForAttempt();
@@ -65,7 +63,8 @@ class TestController extends Controller
             $attempt = TestAttempt::create([
                 'test_id' => $test->id,
                 'participant_name' => $data['participant_name'],
-                'participant_email' => $data['participant_email'] ?? null,
+                'participant_email' => null,
+                'personal_data_consent_at' => now(),
                 'total_questions' => $questions->count(),
                 'started_at' => now(),
             ]);

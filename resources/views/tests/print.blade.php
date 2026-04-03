@@ -77,12 +77,7 @@
 <table>
     <tr>
         <th>Участник</th>
-        <td>
-            {{ $attempt->participant_name }}
-            @if ($attempt->participant_email)
-                <br>Email: {{ $attempt->participant_email }}
-            @endif
-        </td>
+        <td>{{ $attempt->participant_name }}</td>
     </tr>
     <tr>
         <th>Дата завершения (GMT+3)</th>

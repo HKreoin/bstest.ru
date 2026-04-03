@@ -1,17 +1,23 @@
 <div
     x-data="{
-        key: 'bstest_cookie_consent_v1',
+        acceptUrl: @js(route('cookie-consent.store')),
+        csrfToken: @js(csrf_token()),
         show: false,
         init() {
-            try {
-                this.show = localStorage.getItem(this.key) !== '1';
-            } catch (e) {
-                this.show = true;
-            }
+            const ok = document.documentElement.getAttribute('data-cookie-consent') === '1';
+            this.show = !ok;
         },
-        accept() {
+        async accept() {
             try {
-                localStorage.setItem(this.key, '1');
+                await fetch(this.acceptUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-CSRF-TOKEN': this.csrfToken,
+                        Accept: 'application/json',
+                    },
+                });
+                document.documentElement.setAttribute('data-cookie-consent', '1');
             } catch (e) {}
             this.show = false;
         },

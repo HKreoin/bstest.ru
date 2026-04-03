@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->homeUrl(fn () => route('tests.index'))
             ->authGuard('web')
             ->login()
             ->profile()

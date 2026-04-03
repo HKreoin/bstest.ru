@@ -44,7 +44,7 @@
                                     {{ old('order', 'original') === 'original' ? 'checked' : '' }}
                                     class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
                                 >
-                                Как в тесте (по порядку)
+                                По порядку
                             </label>
                             <label class="flex items-center gap-2 text-sm text-gray-700">
                                 <input

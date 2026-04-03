@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,7 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE answer_options ALTER COLUMN text TYPE text');
+        if (! Schema::hasTable('answer_options')) {
+            return;
+        }
+
+        match (Schema::getConnection()->getDriverName()) {
+            'pgsql' => DB::statement('ALTER TABLE answer_options ALTER COLUMN text TYPE text'),
+            'mysql', 'mariadb' => DB::statement('ALTER TABLE answer_options MODIFY `text` TEXT'),
+            default => null, // SQLite: нет ALTER COLUMN … TYPE; длинные строки уже допустимы
+        };
     }
 
     /**
@@ -18,8 +27,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement('ALTER TABLE answer_options ALTER COLUMN text TYPE varchar(255)');
+        if (! Schema::hasTable('answer_options')) {
+            return;
+        }
+
+        match (Schema::getConnection()->getDriverName()) {
+            'pgsql' => DB::statement('ALTER TABLE answer_options ALTER COLUMN text TYPE varchar(255)'),
+            'mysql', 'mariadb' => DB::statement('ALTER TABLE answer_options MODIFY `text` VARCHAR(255)'),
+            default => null,
+        };
     }
 };
-
-

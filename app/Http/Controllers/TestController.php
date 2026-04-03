@@ -48,12 +48,25 @@ class TestController extends Controller
     {
         abort_unless($test->is_active, 404);
 
-        $data = $request->validate([
-            'participant_name' => ['required', 'string', 'max:255'],
-            'pd_consent' => ['accepted'],
+        $request->merge([
+            'participant_name' => preg_replace('/\s+/u', ' ', trim((string) $request->input('participant_name', ''))),
         ]);
 
-        $data['participant_name'] = trim($data['participant_name']);
+        $data = $request->validate(
+            [
+                'participant_name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    'regex:/^[\p{Cyrillic}\s\-\.]+$/u',
+                    fn (string $attribute, mixed $value, \Closure $fail) => $this->validateParticipantFio((string) $value, $fail),
+                ],
+                'pd_consent' => ['accepted'],
+            ],
+            [
+                'participant_name.regex' => 'Только кириллица, пробел, дефис и точка (формат Фамилия Имя Отчество или Фамилия И. О.).',
+            ],
+        );
 
         return DB::transaction(function () use ($request, $test, $data): RedirectResponse {
             $questions = $test->drawQuestionsForAttempt();
@@ -101,6 +114,43 @@ class TestController extends Controller
 
             return redirect()->route('attempts.show', $attempt);
         });
+    }
+
+    /**
+     * Допустимо: «Фамилия Имя Отчество» (3 слова) или «Фамилия И. О.» / «Фамилия И.О.».
+     */
+    protected function validateParticipantFio(string $value, \Closure $fail): void
+    {
+        $parts = preg_split('/\s+/u', $value, -1, PREG_SPLIT_NO_EMPTY);
+        $word = '/^[\p{Cyrillic}]{2,}(?:-[\p{Cyrillic}]+)*$/u';
+        $initial = '/^[\p{Cyrillic}]\.$/u';
+        $initialsPair = '/^[\p{Cyrillic}]\.[\p{Cyrillic}]\.$/u';
+
+        $msg = 'Укажите ФИО кириллицей: «Фамилия Имя Отчество» или «Фамилия И. О.» (либо «Фамилия И.О.»).';
+
+        if (count($parts) === 2) {
+            if (preg_match($word, $parts[0]) && preg_match($initialsPair, $parts[1])) {
+                return;
+            }
+            $fail($msg);
+
+            return;
+        }
+
+        if (count($parts) === 3) {
+            if (! preg_match($word, $parts[0])) {
+                $fail($msg);
+
+                return;
+            }
+            $fullFull = preg_match($word, $parts[1]) && preg_match($word, $parts[2]);
+            $initials = preg_match($initial, $parts[1]) && preg_match($initial, $parts[2]);
+            if ($fullFull || $initials) {
+                return;
+            }
+        }
+
+        $fail($msg);
     }
 
     protected function storeAllowedAttemptId(Request $request, int $attemptId): void

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TestAttemptResource\Pages;
 
 use App\Filament\Resources\TestAttemptResource;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewTestAttempt extends ViewRecord
@@ -13,6 +14,11 @@ class ViewTestAttempt extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            DeleteAction::make()
+                ->label('Удалить попытку')
+                ->modalHeading('Удалить эту попытку?')
+                ->modalDescription('Все ответы по попытке будут удалены безвозвратно.')
+                ->successRedirectUrl(static::getResource()::getUrl('index')),
             Action::make('back')
                 ->label('К списку')
                 ->url(static::getResource()::getUrl('index'))
@@ -32,5 +38,3 @@ class ViewTestAttempt extends ViewRecord
         ];
     }
 }
-
-

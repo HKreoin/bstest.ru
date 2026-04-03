@@ -6,6 +6,9 @@ use App\Filament\Resources\TestAttemptResource\Pages;
 use App\Filament\Resources\TestAttemptResource\RelationManagers\QuestionAttemptsRelationManager;
 use App\Models\TestAttempt;
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
@@ -85,6 +88,20 @@ class TestAttemptResource extends Resource
                         TestAttempt::STATUS_IN_PROGRESS => 'В процессе',
                         TestAttempt::STATUS_COMPLETED => 'Завершено',
                     ]),
+            ])
+            ->recordActions([
+                DeleteAction::make()
+                    ->label('Удалить')
+                    ->modalHeading('Удалить попытку?')
+                    ->modalDescription('Ответы по этой попытке будут удалены безвозвратно.'),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->label('Удалить выбранные')
+                        ->modalHeading('Удалить выбранные попытки?')
+                        ->modalDescription('Все связанные ответы будут удалены безвозвратно.'),
+                ]),
             ])
             ->recordUrl(fn (TestAttempt $record) => static::getUrl('view', ['record' => $record]));
     }

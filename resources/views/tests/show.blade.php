@@ -64,7 +64,7 @@
                             required
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm text-gray-700"
                         >
-                        <p class="mt-1 text-xs text-gray-500">Только кириллица: «Фамилия Имя Отчество» или «Фамилия И. О.» / «Фамилия И.О.».</p>
+                        <p class="mt-1 text-xs text-gray-500">Только кириллица: «Фамилия Имя Отчество» или «Фамилия И. О.»</p>
                         @error('participant_name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

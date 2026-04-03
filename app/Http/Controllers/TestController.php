@@ -117,7 +117,7 @@ class TestController extends Controller
     }
 
     /**
-     * Допустимо: «Фамилия Имя Отчество» (3 слова) или «Фамилия И. О.» / «Фамилия И.О.».
+     * Допустимо: «Фамилия Имя Отчество» (3 слова) или «Фамилия И. О.».
      */
     protected function validateParticipantFio(string $value, \Closure $fail): void
     {
@@ -126,7 +126,7 @@ class TestController extends Controller
         $initial = '/^[\p{Cyrillic}]\.$/u';
         $initialsPair = '/^[\p{Cyrillic}]\.[\p{Cyrillic}]\.$/u';
 
-        $msg = 'Укажите ФИО кириллицей: «Фамилия Имя Отчество» или «Фамилия И. О.» (либо «Фамилия И.О.»).';
+        $msg = 'Укажите ФИО кириллицей: «Фамилия Имя Отчество» или «Фамилия И. О.»';
 
         if (count($parts) === 2) {
             if (preg_match($word, $parts[0]) && preg_match($initialsPair, $parts[1])) {

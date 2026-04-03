@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('landing');
+    return redirect()->route('tests.index');
 })->name('landing');
 
 Route::get('/dashboard', function () {

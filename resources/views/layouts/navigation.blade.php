@@ -53,14 +53,9 @@
                         </x-slot>
                     </x-dropdown>
                 @else
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ url('/admin/login') }}" class="text-sm text-gray-600 hover:text-gray-800">
-                            Войти
-                        </a>
-                        <a href="{{ url('/admin/register') }}" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
-                            Регистрация
-                        </a>
-                    </div>
+                    <a href="{{ url('/admin/login') }}" class="text-sm text-gray-600 hover:text-gray-800">
+                        Войти
+                    </a>
                 @endauth
             </div>
 
@@ -112,9 +107,6 @@
                 <div class="px-4 space-y-3">
                     <a href="{{ url('/admin/login') }}" class="block text-sm font-medium text-indigo-600 hover:text-indigo-800">
                         Войти
-                    </a>
-                    <a href="{{ url('/admin/register') }}" class="block text-sm font-medium text-indigo-600 hover:text-indigo-800">
-                        Регистрация
                     </a>
                 </div>
             @endauth

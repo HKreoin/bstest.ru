@@ -11,6 +11,10 @@ Route::get('/', function () {
     return redirect()->route('tests.index');
 })->name('landing');
 
+Route::get('/login', function () {
+    return redirect('/admin/login');
+})->name('login');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');

@@ -10,7 +10,7 @@
             <div class="bg-white shadow sm:rounded-lg p-6 space-y-6">
                 <div class="text-sm text-gray-600">
                     <p>
-                        Вопрос {{ $questionIndex }} из {{ $totalQuestions }}.
+                        Вопрос №{{ $questionIndex }} ({{ $progressIndex }} из {{ $totalQuestions }}).
                         Ограничений по времени нет, результаты не сохраняются.
                     </p>
                 </div>

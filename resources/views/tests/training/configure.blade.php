@@ -12,7 +12,12 @@
                     Выберите параметры тренировки. Результаты не сохраняются, ограничений по времени нет.
                 </p>
 
-                <form method="POST" action="{{ route('tests.training.start', $test) }}" class="space-y-6">
+                <form
+                    method="POST"
+                    action="{{ route('tests.training.start', $test) }}"
+                    class="space-y-6"
+                    x-data="{ order: '{{ old('order', 'original') }}' }"
+                >
                     @csrf
 
                     <div>
@@ -42,6 +47,7 @@
                                     name="order"
                                     value="original"
                                     {{ old('order', 'original') === 'original' ? 'checked' : '' }}
+                                    @change="order = 'original'"
                                     class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
                                 >
                                 По порядку
@@ -52,6 +58,7 @@
                                     name="order"
                                     value="random"
                                     {{ old('order') === 'random' ? 'checked' : '' }}
+                                    @change="order = 'random'"
                                     class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
                                 >
                                 В случайном порядке
@@ -61,6 +68,25 @@
                             <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                         @enderror
                     </fieldset>
+
+                    <div x-show="order === 'original'" x-cloak>
+                        <label for="start_from" class="block text-sm font-medium text-gray-700">Начать с вопроса №</label>
+                        <input
+                            type="number"
+                            id="start_from"
+                            name="start_from"
+                            min="1"
+                            max="{{ $test->questions_count }}"
+                            value="{{ old('start_from', 1) }}"
+                            class="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm text-gray-700"
+                        >
+                        <p class="mt-1 text-xs text-gray-500">
+                            Доступно от 1 до {{ $test->questions_count }}. Работает только в режиме «По порядку».
+                        </p>
+                        @error('start_from')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
                     <div class="flex items-center gap-3">
                         <a href="{{ route('tests.show', $test) }}" class="text-sm text-gray-500 hover:text-gray-700">

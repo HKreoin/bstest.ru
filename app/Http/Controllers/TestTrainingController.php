@@ -29,7 +29,21 @@ class TestTrainingController extends Controller
         $data = $request->validate([
             'question_count' => ['required', 'integer', 'min:1', 'max:'.$totalQuestions],
             'order' => ['required', 'in:original,random'],
+            'start_from' => ['nullable', 'integer', 'min:1', 'max:'.$totalQuestions],
         ]);
+
+        $startFrom = $data['order'] === 'original'
+            ? (int) ($data['start_from'] ?? 1)
+            : 1;
+        $maxCountFromStart = $totalQuestions - $startFrom + 1;
+
+        if ($data['order'] === 'original' && (int) $data['question_count'] > $maxCountFromStart) {
+            return back()
+                ->withErrors([
+                    'question_count' => 'Для выбранного стартового вопроса доступно не более '.$maxCountFromStart.' вопросов.',
+                ])
+                ->withInput();
+        }
 
         $questions = $test->questions()
             ->with('answerOptions')
@@ -40,7 +54,13 @@ class TestTrainingController extends Controller
             $questions = $questions->shuffle();
         }
 
-        $selectedQuestions = $questions->take($data['question_count'])->values();
+        if ($data['order'] === 'original') {
+            $selectedQuestions = $questions
+                ->slice($startFrom - 1, (int) $data['question_count'])
+                ->values();
+        } else {
+            $selectedQuestions = $questions->take((int) $data['question_count'])->values();
+        }
 
         $sessionId = (string) Str::uuid();
 
@@ -60,6 +80,8 @@ class TestTrainingController extends Controller
                     ])
                     ->toArray(),
             ])->toArray(),
+            'order' => $data['order'],
+            'start_from' => $startFrom,
             'current_index' => 0,
             'results' => [],
             'last_result' => null,
@@ -82,6 +104,7 @@ class TestTrainingController extends Controller
         abort_if($currentIndex < 0 || $currentIndex >= $totalQuestions, 404);
 
         $question = $questions[$currentIndex];
+        $questionNumber = $this->resolveDisplayedQuestionNumber($sessionData, $currentIndex);
 
         $lastResult = $sessionData['last_result'] ?? null;
         $isLastQuestion = $currentIndex === $totalQuestions - 1;
@@ -89,7 +112,8 @@ class TestTrainingController extends Controller
         return view('tests.training.attempt', [
             'test' => $test,
             'sessionId' => $session,
-            'questionIndex' => $currentIndex + 1,
+            'questionIndex' => $questionNumber,
+            'progressIndex' => $currentIndex + 1,
             'totalQuestions' => $totalQuestions,
             'question' => $question,
             'lastResult' => $lastResult,
@@ -109,6 +133,7 @@ class TestTrainingController extends Controller
 
         $question = $questions[$currentIndex];
         $questionId = (int) ($question['id'] ?? 0);
+        $questionNumber = $this->resolveDisplayedQuestionNumber($sessionData, $currentIndex);
 
         $optionIds = collect($question['answers'] ?? [])
             ->pluck('id')
@@ -176,7 +201,7 @@ class TestTrainingController extends Controller
             ->toArray();
 
         $resultItem = [
-            'index' => $currentIndex + 1,
+            'index' => $questionNumber,
             'question' => $question,
             'selected_ids' => $selectedIds->toArray(),
             'selected_texts' => $selectedOptions,
@@ -196,7 +221,8 @@ class TestTrainingController extends Controller
         return view('tests.training.attempt', [
             'test' => $test,
             'sessionId' => $session,
-            'questionIndex' => $currentIndex + 1,
+            'questionIndex' => $questionNumber,
+            'progressIndex' => $currentIndex + 1,
             'totalQuestions' => $totalQuestions,
             'question' => $question,
             'lastResult' => $resultItem,
@@ -272,5 +298,14 @@ class TestTrainingController extends Controller
         );
 
         return $sessionData;
+    }
+
+    protected function resolveDisplayedQuestionNumber(array $sessionData, int $currentIndex): int
+    {
+        if (($sessionData['order'] ?? 'original') !== 'original') {
+            return $currentIndex + 1;
+        }
+
+        return (int) ($sessionData['start_from'] ?? 1) + $currentIndex;
     }
 }

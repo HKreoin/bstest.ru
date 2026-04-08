@@ -16,7 +16,24 @@
                     method="POST"
                     action="{{ route('tests.training.start', $test) }}"
                     class="space-y-6"
-                    x-data="{ order: '{{ old('order', 'original') }}' }"
+                    x-data="{
+                        order: '{{ old('order', 'original') }}',
+                        totalQuestions: {{ (int) $test->questions_count }},
+                        questionCount: {{ (int) old('question_count', $test->questions_count) }},
+                        startFrom: {{ (int) old('start_from', 1) }},
+                        availableTail() {
+                            return Math.max(1, this.totalQuestions - this.startFrom + 1);
+                        },
+                        normalizeStartFrom() {
+                            if (!Number.isFinite(this.startFrom)) this.startFrom = 1;
+                            this.startFrom = Math.min(Math.max(1, this.startFrom), this.totalQuestions);
+                        },
+                        normalizeQuestionCount() {
+                            if (!Number.isFinite(this.questionCount)) this.questionCount = 1;
+                            const max = this.order === 'original' ? this.availableTail() : this.totalQuestions;
+                            this.questionCount = Math.min(Math.max(1, this.questionCount), max);
+                        },
+                    }"
                 >
                     @csrf
 
@@ -27,8 +44,9 @@
                             id="question_count"
                             name="question_count"
                             min="1"
-                            max="{{ $test->questions_count }}"
-                            value="{{ old('question_count', $test->questions_count) }}"
+                            :max="order === 'original' ? availableTail() : totalQuestions"
+                            x-model.number="questionCount"
+                            @input="normalizeQuestionCount()"
                             required
                             class="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm text-gray-700"
                         >
@@ -47,7 +65,7 @@
                                     name="order"
                                     value="original"
                                     {{ old('order', 'original') === 'original' ? 'checked' : '' }}
-                                    @change="order = 'original'"
+                                    @change="order = 'original'; normalizeStartFrom(); normalizeQuestionCount();"
                                     class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
                                 >
                                 По порядку
@@ -58,7 +76,7 @@
                                     name="order"
                                     value="random"
                                     {{ old('order') === 'random' ? 'checked' : '' }}
-                                    @change="order = 'random'"
+                                    @change="order = 'random'; normalizeQuestionCount();"
                                     class="text-indigo-600 focus:ring-indigo-500 border-gray-300"
                                 >
                                 В случайном порядке
@@ -76,12 +94,13 @@
                             id="start_from"
                             name="start_from"
                             min="1"
-                            max="{{ $test->questions_count }}"
-                            value="{{ old('start_from', 1) }}"
+                            :max="totalQuestions"
+                            x-model.number="startFrom"
+                            @input="normalizeStartFrom(); normalizeQuestionCount();"
                             class="mt-1 block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm text-gray-700"
                         >
                         <p class="mt-1 text-xs text-gray-500">
-                            Доступно от 1 до {{ $test->questions_count }}. Работает только в режиме «По порядку».
+                            Доступно от 1 до {{ $test->questions_count }}. При изменении старта количество вопросов автоматически ограничивается доступным хвостом.
                         </p>
                         @error('start_from')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
